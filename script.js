@@ -1,27 +1,24 @@
 function generate() {
     var rawtext = document.getElementById("participants").value;
-    buildEntrants(rawtext);
-}
-
-function buildEntrants(text) {
-    text += "\n";
+    
+    //Build entrants
+    rawtext += "\n";
     var regex = /\w.*\n/g;
     var entrants = [];
     var m;
     do {
-        m = regex.exec(text);
+        m = regex.exec(rawtext);
         if (m) {
             entrants.push(m - "\n");
         }
     } while (m);
-    buildBracket(entrants);
-}
-
-function buildBracket(entrants) {
+    
+    //Build bracket
     var bracketSize = entrants.length;
     var overallBracketSize = 2;
     while (overallBracketSize < bracketSize) {
         overallBracketSize *= 2;
     }
     // Number of byes = overall bracket size - real bracket size
+
 }
