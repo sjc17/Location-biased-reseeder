@@ -23,6 +23,7 @@ function generate() {
     var baseBracketSize = 2;
     var winnersRounds = 1;
     var winnersBracket = [];
+    var losersBracket = [];
     
     while (baseBracketSize < bracketSize) {
         baseBracketSize *= 2;
@@ -35,14 +36,36 @@ function generate() {
         entrants.push(null);
     }
     // Generate winners bracket
+
+    winnersBracket[0] = [[0, 1]];
+    for (var i = 1; i < winnersRounds; i++) {
+        winnersBracket[i] = [];
+        for (var j = 0; j < Math.pow(2, i - 1); j++) {
+            winnersBracket[i].push([winnersBracket[i-1][j][0]]);
+            winnersBracket[i].push([winnersBracket[i-1][j][1]]);            
+        }
+        for (var j = 0; j <  Math.pow(2, i); j++) {
+            //winnersBracket[i][j].push(Math.pow(2, i + 1) + 1 - winnersBracket[i][j]);
+            winnersBracket[i][j].push(Math.pow(2, i + 1) - 1 - winnersBracket[i][j]);
+        }
+    }
+    
+    console.log(winnersBracket);
+    /*
     for (var i = 0; i < winnersRounds; i++) {
         winnersBracket[i] = [];
         for (var j = 0; j < Math.pow(2, i); j++) {
             winnersBracket[i].push([entrants[j],entrants[Math.pow(2, i + 1) - 1 - j]]);
         }
     }
-    
+    */
 
+    // Generate losers bracket
+    var losersRounds = (winnersRounds - 1) * 2;
 
+    // Each loop in this for loop generates two rounds of losers bracket
+    for (var i = 0; i < losersRounds/2; i ++) {
+        // Generate first losers bracket round
+    }
     //console.log(entrants);
 }
