@@ -36,7 +36,7 @@ function generate() {
         entrants.push(null);
     }
     // Generate winners bracket
-
+    // Array starts with Winners Finals and works backwards
     winnersBracket[0] = [[0, 1]];
     for (var i = 1; i < winnersRounds; i++) {
         winnersBracket[i] = [];
@@ -45,27 +45,50 @@ function generate() {
             winnersBracket[i].push([winnersBracket[i-1][j][1]]);            
         }
         for (var j = 0; j <  Math.pow(2, i); j++) {
-            //winnersBracket[i][j].push(Math.pow(2, i + 1) + 1 - winnersBracket[i][j]);
             winnersBracket[i][j].push(Math.pow(2, i + 1) - 1 - winnersBracket[i][j]);
         }
     }
-    
-    console.log(winnersBracket);
-    /*
-    for (var i = 0; i < winnersRounds; i++) {
-        winnersBracket[i] = [];
-        for (var j = 0; j < Math.pow(2, i); j++) {
-            winnersBracket[i].push([entrants[j],entrants[Math.pow(2, i + 1) - 1 - j]]);
-        }
-    }
-    */
+    winnersBracket = winnersBracket.reverse();
 
     // Generate losers bracket
-    var losersRounds = (winnersRounds - 1) * 2;
 
-    // Each loop in this for loop generates two rounds of losers bracket
-    for (var i = 0; i < losersRounds/2; i ++) {
-        // Generate first losers bracket round
+    // Generate first losers bracket round
+    losersBracket[0] = [];
+    for (var i = 0; i < winnersBracket[0].length; i += 2) {
+        losersBracket[0].push(
+            [
+                winnersBracket[0][i][1], 
+                winnersBracket[0][i+1][1]
+            ]
+        );
     }
-    //console.log(entrants);
+    // Generate the second losers bracket round
+    losersBracket[1] = [];
+    for (var i = 0; i < winnersBracket[1].length; i++) {
+        losersBracket[1].push([Math.max(...winnersBracket[1][winnersBracket[1].length - 1 - i]), Math.min(...losersBracket[0][i])]);
+    }
+    // Generate the rest of the losers rounds
+    for (var i = 2; i < winnersRounds; i++) {
+        losersBracket[2*i-2] = [];
+        for (var j = 0; j < losersBracket[2*i-3].length; j += 2) {
+            losersBracket[2*i-2].push(
+                [
+                    Math.min(...losersBracket[2*i-3][j]),
+                    Math.min(...losersBracket[2*i-3][j+1])    
+                ]                    
+            );
+        }
+        losersBracket[2*i-1] = [];
+        for (var j = 0; j < losersBracket[2*i-2].length/2; j++) {
+            losersBracket[2*i-1].push(
+                [
+                    Math.min(...losersBracket[2*i-2][j]),
+                    Math.max(...winnersBracket[i][j])
+                ]
+            );
+        }
+    }
+    console.log(winnersRounds);
+    console.log(winnersBracket);
+    console.log(losersBracket);
 }
