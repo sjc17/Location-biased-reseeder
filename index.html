@@ -13,7 +13,6 @@
             <h1>Location Biased Reseeder</h1>
         </header>
         <main>
-            <h4>Hello.</h4>
             <!--
             <p>This is a location biased reseeder, a webpage that I conceptualized
              to help TOs seed regional tournaments. A common issue with seeding
@@ -22,8 +21,18 @@
             undesirable in pools. To solve this, I considered using genetic
             algorithms</p>
             -->
-            <textarea id="participants" rows="30" cols="20"></textarea>
-            <br>
+            <h3>Pool Count</h3>
+            <textarea id="pool-count" rows="1" cols="6"></textarea>
+            <div class="container">
+                <div class="subcontainer">
+                    <h3>Entrants (descending seed, separated by new lines)</h3>
+                    <textarea id="participants" rows="30" cols="20"></textarea>
+                </div>
+                <div class="subcontainer">
+                    <h3>Regions (each line corresponds to its respective position in Entrants)</h3>
+                    <textarea id="regions" rows="30" cols="20"></textarea>
+                </div>
+            </div>       
             <button type="button" onclick="generate()">Generate!</button>            
         </main>
         <footer>
