@@ -4,9 +4,9 @@
         <title>Location Biased Reseeder</title>
         <meta name="description" content="My project for helping Smash Ultimate TOs with seeding regionals.">
         <meta charset="utf-8">
-        <link rel="stylesheet" href="style.css">
-        <script src="src\script.js"></script>
-        <script src="node_modules\genetic-js\js\genetic-0.1.14.js"></script>
+        <link rel="stylesheet" href=".\style.css">
+        <script src=".\src\script.js"></script>
+        <script src=".\node_modules\genetic-js\js\genetic-0.1.14.js"></script>
     </head>
     <body>
         <header>
@@ -21,8 +21,21 @@
             undesirable in pools. To solve this, I considered using genetic
             algorithms</p>
             -->
-            <h3>Pool Count</h3>
-            <textarea id="pool-count" rows="1" cols="6"></textarea>
+            
+            <div class="container">
+                <div class="subcontainer">
+                    <h3>Pool Count</h3>
+                    <textarea id="pool-count" rows="1" cols="6"></textarea>
+                </div>
+                <div class="subcontainer">
+                    <h3>Lock Top Seeds</h3>
+                    <textarea id="lock-top-seeds" rows="1" cols="6"></textarea></div>
+                </div>
+                <div class="subcontainer">
+                    <h3>Top X Advance From Pools</h3>
+                    <textarea id="advance-from-pools" rows="1" cols="6"></textarea></div>
+                </div>
+            </div>
             <div class="container">
                 <div class="subcontainer">
                     <h3>Entrants (descending seed, separated by new lines)</h3>

@@ -1,14 +1,133 @@
 'use strict';
 function generate() {
     let genetic = Genetic.create();
-    let entrantList = getEntrants(genPools);
-    console.log(homeRegion(entrantList));
+    genetic.entrantObjectList = getEntrants();
+    if (genetic.entrantObjectList === null) {return;}
+    genetic.home = homeRegion(genetic.entrantObjectList);
+    genetic.poolCount = document.getElementById("pool-count").value;
+    genetic.lockedSeeds = parseInt(document.getElementById("lock-top-seeds").value);
+    genetic.advanceFromPools = document.getElementById("advance-from-pools").value;
 
-    //genetic.optimize = Genetic.Optimize.Minimize;
-    //genetic.select1.tournament2 = Genetic.Select1.Tournament2;
+    genetic.optimize = Genetic.Optimize.Minimize;
+    genetic.select1 = Genetic.Select1.RandomLinearRank;
+
+    genetic.seed = function() {
+         // Fisher-Yates Shuffle
+        let newArr = [...Array(this.entrantObjectList.length).keys()];
+        /*
+        let m = newArr.length;
+        let swapIndex;
+        let holdElement;
+        while (m) {
+            swapIndex = Math.floor(Math.random() * m--);
+
+            holdElement = newArr[m];
+            newArr[m] = newArr[swapIndex];
+            newArr[swapIndex] = holdElement;
+        }
+        */
+        return newArr; 
+    }
+
+    genetic.fitness = function (individual) {
+        let fitness = this.penaltySameRegion(individual, this.entrantObjectList, this.home)
+        + this.penaltySeedOffset(individual, this.entrantObjectList);
+        return fitness;
+    }
+
+    genetic.mutate = function (individual) {
+        return this.mutateSeeds(individual, this.lockedSeeds);
+    }
+
+    // Determines penalty to fitness for having regional conflict in a pool
+    genetic.penaltySameRegion = function (seeds, entrantObjectList, home) {
+        let pools = this.genPools(seeds);
+        let penalty = 0;
+    
+        pools.forEach(function(pool) {
+            for (let i = 0; i < pool.length - 1; i++) {
+                for (let j = i+1; j < pool.length; j++) {
+                    if ((entrantObjectList[pool[i]].region === entrantObjectList[pool[j]].region) && entrantObjectList[pool[i]] !== home) {
+                        // This calculation will definitely require tweaking in the future
+                        penalty += Math.abs(1/(entrantObjectList[pool[i]].originalSeed - entrantObjectList[pool[j]].originalSeed));
+                    }
+                }
+            }
+        });
+        return penalty;
+    }
+    
+    // Determines penalty to fitness for moving a seed away from its original
+    genetic.penaltySeedOffset = function (seeds, entrantObjectList) {
+        let penalty = 0;
+        let totalSeeds = seeds.length;
+        seeds.forEach(function(e) {
+            penalty += Math.abs((entrantObjectList[e].originalSeed - seeds.indexOf(e))/totalSeeds);
+        });
+        return penalty;
+    }    
+    
+    genetic.mutateSeeds = function (seeds, lock) {
+        // Seeding chromosomal drift
+        let newSeed = [...seeds];
+        let driftSeed = Math.floor(lock + (Math.random() * (seeds.length - lock - 2)));
+        newSeed = newSeed.slice(0, driftSeed).concat(newSeed[driftSeed + 1]).concat(newSeed[driftSeed]).concat(newSeed.slice(driftSeed + 2));
+        return newSeed;
+    }
+
+    genetic.genPools = function (entrants) {
+        // Function will generate X number of pools from a list of entrants ordered by descending rank.
+    
+        // Reverse so that we can use Array.prototype.pop()
+        let newEntrants = [...entrants.slice().reverse()];
+        let ascendingSeeding = true;
+        let i = 0;
+        let j = 0;
+        let pools = new Array(this.poolCount);
+        for (let k = 0; k < this.poolCount; k++) {
+            pools[k] = [];
+        }
+    
+        while(j < 64 && newEntrants.length !== 0) {
+            pools[i].push(newEntrants.pop());
+            if ((i === this.poolCount - 1 && ascendingSeeding === true) || (i === 0 && ascendingSeeding === false)) {
+                ascendingSeeding = !ascendingSeeding;
+            }
+            else if (ascendingSeeding) {
+                i++;
+            }
+            else {
+                i--;
+            }
+            j++;
+        }
+        return pools;
+    }
+
+    genetic.generation = function (pop, generation, stats) {
+        console.log(pop[0].entity);
+        console.log("Gen "+generation);
+        console.log("Best fitness "+stats.maximum);
+        return;
+    }
+
+    genetic.notification = function(pop, generation, stats, isFinished) {
+        if (isFinished) {
+            alert('Done!');
+        }
+    }
+
+    let config = {
+        'size': 250,
+        'mutation': 0.3,
+        'iterations': 100,
+        'webWorkers': true
+    }
+
+    genetic.evolve(config, {});
 }
 
-function getEntrants(callbackGenPools) {
+function getEntrants() {
     let rawText = document.getElementById("participants").value;
     let rawRegions = document.getElementById("regions").value;
     let poolCount = document.getElementById("pool-count").value;
@@ -41,63 +160,35 @@ function getEntrants(callbackGenPools) {
         alert("Warning: Entrant count does not match number of lines in region text box.");
         return null;
     }
-    else if (entrants.length < 4 || entrants.length > 128) {
-        alert("Entrant count must be between 4 and 128.");
+    else if (entrants.length < 8 || entrants.length > 128) {
+        alert("Entrant count must be between 8 and 128.");
         return null;
     }
     else {
         if (!poolCount) {
             alert("Please enter pool count.");
+            return null;
         }
         else {
-            return callbackGenPools(entrants, poolCount);
+            return entrants;
         }
     }
-}
-
-function genPools(entrants, poolCount) {
-    // Function will generate X number of pools from a list of entrants ordered by descending rank.
-
-    // Reverse so that we can use Array.prototype.pop()
-    let newEntrants = entrants.reverse();
-    let ascendingSeeding = true;
-    let i = 0;
-    let j = 0;
-    let pools = new Array(poolCount);
-    for (let k = 0; k < poolCount; k++) {
-        pools[k] = [];
-    }
-
-    while(j < 64 && newEntrants.length !== 0) {
-        pools[i].push(newEntrants.pop());
-        if ((i === poolCount - 1 && ascendingSeeding === true) || (i === 0 && ascendingSeeding === false)) {
-            ascendingSeeding = !ascendingSeeding;
-        }
-        else if (ascendingSeeding) {
-            i++;
-        }
-        else {
-            i--;
-        }
-        j++;
-    }
-    return pools;
 }
 
 function homeRegion(entrants) {
     let regionCount = {};
     let max = 0;
     let home;
-    for (let pool in entrants) {
-        for (let entr in entrants[pool]) {
-            if (!regionCount.hasOwnProperty(entrants[pool][entr].region)) {
-                regionCount[entrants[pool][entr].region] = 1;
-            }
-            else {
-                regionCount[entrants[pool][entr].region]++;
-            }
+
+    entrants.forEach(function(entr) {
+        if (!regionCount.hasOwnProperty(entr.region)) {
+            regionCount[entr.region] = 1;
         }
-    }
+        else {
+            regionCount[entr.region]++;
+        }
+    }); 
+    
     for (let key in regionCount) {
         if (regionCount[key] > max) {
             home = key;
@@ -112,6 +203,19 @@ function Entrant(name, region, originalSeed) {
     this.region = region;
     this.originalSeed = originalSeed;
 }
+
+/*
+function penaltySeedOffset(seeds, entrantObjectList) {
+    let penalty = 0;
+    let totalSeeds = seeds.length;
+    console.log(seeds);
+    seeds.forEach(function(e) {
+        penalty += Math.abs((entrantObjectList[e].originalSeed - seeds.indexOf(e))/totalSeeds);
+    });
+    console.log("Seeding penalty: " + penalty);
+    return penalty;
+}
+*/
 
 
 // Saving this code for later. Currently I will be implementing seeding for pools only.
